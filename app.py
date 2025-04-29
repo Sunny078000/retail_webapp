@@ -3,7 +3,7 @@ import pyodbc
 
 app = Flask(__name__)
 
-# Azure SQL Database connection settings
+# Azure SQL Database connection details (change your server, username, password)
 server = '<your-server-name>.database.windows.net'
 database = 'retaildb'
 username = '<your-username>'
@@ -19,21 +19,34 @@ def home():
     if request.method == 'POST':
         hshd_num = request.form.get('hshd_num')
 
-        # Connect to the database
         try:
             conn = pyodbc.connect(conn_str)
             cursor = conn.cursor()
 
             query = '''
-                SELECT t.HSHD_NUM, t.BASKET_NUM, t.PURCHASE_DATE, 
-                       p.PRODUCT_NUM, p.DEPARTMENT, p.COMMODITY
-                FROM dbo.transactions t
-                JOIN dbo.products p ON t.PRODUCT_NUM = p.PRODUCT_NUM
-                WHERE t.HSHD_NUM = ?
-                ORDER BY t.HSHD_NUM, t.BASKET_NUM, t.PURCHASE_DATE, p.PRODUCT_NUM, p.DEPARTMENT, p.COMMODITY
+                SELECT 
+                    t.HSHD_NUM, 
+                    t.BASKET_NUM, 
+                    t.PURCHASE_DATE, 
+                    p.PRODUCT_NUM, 
+                    p.DEPARTMENT, 
+                    p.COMMODITY
+                FROM 
+                    dbo.transactions t
+                INNER JOIN 
+                    dbo.products p ON t.PRODUCT_NUM = p.PRODUCT_NUM
+                WHERE 
+                    t.HSHD_NUM = ?
+                ORDER BY 
+                    t.HSHD_NUM, t.BASKET_NUM, t.PURCHASE_DATE, p.PRODUCT_NUM, p.DEPARTMENT, p.COMMODITY
             '''
+
             cursor.execute(query, (hshd_num,))
-            results = cursor.fetchall()
+            columns = [column[0] for column in cursor.description]
+            rows = cursor.fetchall()
+
+            for row in rows:
+                results.append(dict(zip(columns, row)))
 
         except Exception as e:
             print("Database connection error:", e)
@@ -41,4 +54,4 @@ def home():
     return render_template('index.html', results=results)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
