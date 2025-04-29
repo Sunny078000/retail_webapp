@@ -1,2 +1,2 @@
-Flask
-pyodbc
+Flask==3.0.0
+pyodbc==4.0.35
