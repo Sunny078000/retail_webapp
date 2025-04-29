@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="submit"] {
+            padding: 10px;
+            margin: 5px;
+            width: 250px;
+            font-size: 16px;
+        }
+        table {
+            margin: 20px auto;
+            width: 80%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Retail Data Search</h1>
+
+<form method="POST" action="/search">
+    <input type="text" name="hshd_num" placeholder="Enter Household Number">
+    <input type="submit" value="Search">
+</form>
+
+{% if results %}
+    <table>
+        <thead>
+            <tr>
+                <th>HSHD_NUM</th>
+                <th>BASKET_NUM</th>
+                <th>PURCHASE_DATE</th>
+                <th>PRODUCT_NUM</th>
+                <th>DEPARTMENT</th>
+                <th>COMMODITY</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in results %}
+            <tr>
+                <td>{{ row.HSHD_NUM }}</td>
+                <td>{{ row.BASKET_NUM }}</td>
+                <td>{{ row.PURCHASE_DATE }}</td>
+                <td>{{ row.PRODUCT_NUM }}</td>
+                <td>{{ row.DEPARTMENT }}</td>
+                <td>{{ row.COMMODITY }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+</body>
+</html>
