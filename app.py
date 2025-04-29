@@ -1,66 +1,44 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 import pyodbc
-import os
 
 app = Flask(__name__)
 
-DB_SERVER = os.environ.get('DB_SERVER')
-DB_DATABASE = os.environ.get('DB_DATABASE')
-DB_USERNAME = os.environ.get('DB_USERNAME')
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
+# Azure SQL Database connection settings
+server = '<your-server-name>.database.windows.net'
+database = 'retaildb'
+username = '<your-username>'
+password = '<your-password>'
+driver = '{ODBC Driver 17 for SQL Server}'
 
-connection_string = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_SERVER};DATABASE={DB_DATABASE};UID={DB_USERNAME};PWD={DB_PASSWORD}'
+# Connection string
+conn_str = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}'
 
-def get_db_connection():
-    try:
-        conn = pyodbc.connect(connection_string)
-        return conn
-    except Exception as e:
-        print("Database connection failed:", e)
-        return None
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
-    return render_template('home.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        email = request.form['email']
-        return redirect(url_for('home'))
-    return render_template('login.html')
-
-@app.route('/search', methods=['GET', 'POST'])
-def search():
     results = []
     if request.method == 'POST':
-        hshd_num = request.form['hshd_num']
-        conn = get_db_connection()
-        if conn:
+        hshd_num = request.form.get('hshd_num')
+
+        # Connect to the database
+        try:
+            conn = pyodbc.connect(conn_str)
             cursor = conn.cursor()
-            query = f"SELECT * FROM transactions WHERE HSHD_NUM = ?"
+
+            query = '''
+                SELECT t.HSHD_NUM, t.BASKET_NUM, t.PURCHASE_DATE, 
+                       p.PRODUCT_NUM, p.DEPARTMENT, p.COMMODITY
+                FROM dbo.transactions t
+                JOIN dbo.products p ON t.PRODUCT_NUM = p.PRODUCT_NUM
+                WHERE t.HSHD_NUM = ?
+                ORDER BY t.HSHD_NUM, t.BASKET_NUM, t.PURCHASE_DATE, p.PRODUCT_NUM, p.DEPARTMENT, p.COMMODITY
+            '''
             cursor.execute(query, (hshd_num,))
             results = cursor.fetchall()
-            conn.close()
-    return render_template('search.html', results=results)
 
-@app.route('/datapull')
-def datapull():
-    results = []
-    conn = get_db_connection()
-    if conn:
-        cursor = conn.cursor()
-        query = f"SELECT * FROM transactions WHERE HSHD_NUM = 10"
-        cursor.execute(query)
-        results = cursor.fetchall()
-        conn.close()
-    return render_template('datapull.html', results=results)
+        except Exception as e:
+            print("Database connection error:", e)
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
+    return render_template('index.html', results=results)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(debug=True)
