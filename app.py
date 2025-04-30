@@ -19,10 +19,10 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 
 
-server = 'retaildata-server.database.windows.net'
-database = 'RetailData'
-username = 'user'
-password = 'Retail@1234'
+server = 'retaildata.database.windows.net'
+database = 'retaildb'
+username = 'KALLURUD'
+password = 'Sree@2004/11'
 password = urllib.parse.quote_plus(password)
 
 connection_string = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server"
@@ -34,10 +34,10 @@ engine = create_engine(connection_string)
 def get_db_connection():
     conn = pyodbc.connect(
         'DRIVER={ODBC Driver 17 for SQL Server};'
-        'SERVER=retaildata-server.database.windows.net;'
-        'DATABASE=RetailData;'
-        'UID=user;'
-        'PWD=Retail@1234'
+        'SERVER=retaildata.database.windows.net;'
+        'DATABASE=retaildb;'
+        'UID=KALLURUD;'
+        'PWD=Sree@2004/11'
     )
     return conn
 
@@ -730,11 +730,7 @@ def signup():
 
         # Insert data into the database
         conn = get_db_connection()
-        cur = conn.cursor()
-        query = "INSERT INTO Users (Username, Password, Email) VALUES (?, ?, ?)"
-        cur.execute(query, (username, password, email))
-        conn.commit()
-        cur.close()
+        
         conn.close()
 
         return redirect(url_for('home'))
